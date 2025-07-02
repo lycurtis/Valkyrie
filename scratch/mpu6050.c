@@ -29,7 +29,7 @@ uint8_t MPU6050_Init(void){
 	if(check == MPU6050_I2C_ADDR){
 		//Must wake up device by writing 0 to the Power Management 1 Register
 		data = 0x00;
-		I2C_Mem_Write(MPU6050_I2C_ADDR, MPUR_PWR_MGMT_1, &daata, 1);
+		I2C_Mem_Write(MPU6050_I2C_ADDR, MPUR_PWR_MGMT_1, &data, 1);
 
 		// Set the sample rate. 1kHz/(1+SMPLRT_DIV)
 		// Set SMPLRT_DIV to 7 for a 125Hz sample rate
@@ -50,7 +50,7 @@ uint8_t MPU6050_Init(void){
 	return 0; // fail
 }
 
-void MPU6050_Read_Accel(int16_t *accel_x, int16_t * accel_y, int15_t *accel_z){
+void MPU6050_Read_Accel(int16_t *accel_x, int16_t * accel_y, int16_t *accel_z){
 	uint8_t buffer[6]; //stores raw data
 
 	// Read 6 bytes of data starting from the ACCEL_XOUT_H register
@@ -74,19 +74,19 @@ void MPU6050_Read_Gyro(int16_t *gyro_x, int16_t *gyro_y, int16_t *gyro_z){
 	*gyro_z = (int16_t)(buffer[4] << 8 | buffer[5]);
 }
 
-int16_t MPU6050_Read_Temp(void){
-	uint8_t buffer[2]; //raw data
-	int16_t temp;
-
-	// Read 2 bytes of data starting from the TEMP_OUT_H register.
-	I2C_Mem_Read(MPU6050_I2C_ADDR, MPUR_TEMP_OUT_H, buffer, 2);
-
-	// Combine the high and low bytes to form the 16-bit temperature value.
-	temp = (int16_t)(buffer[0] << 8 | buffer[1]);
-
-	// Note: To convert this to degrees Celsius, use the formula from the datasheet:
-	// Temperature in degrees C = (TEMP_OUT / 340.0) + 36.53
-	// conversion will be done in main application logic, not in the driver.
-	return temp;
-}
+//int16_t MPU6050_Read_Temp(void){
+//	uint8_t buffer[2]; //raw data
+//	int16_t temp;
+//
+//	// Read 2 bytes of data starting from the TEMP_OUT_H register.
+//	I2C_Mem_Read(MPU6050_I2C_ADDR, MPUR_TEMP_OUT_H, buffer, 2);
+//
+//	// Combine the high and low bytes to form the 16-bit temperature value.
+//	temp = (int16_t)(buffer[0] << 8 | buffer[1]);
+//
+//	// Note: To convert this to degrees Celsius, use the formula from the datasheet:
+//	// Temperature in degrees C = (TEMP_OUT / 340.0) + 36.53
+//	// conversion will be done in main application logic, not in the driver.
+//	return temp;
+//}
 
