@@ -48,6 +48,6 @@
 
 //void MPU6050_Init(void);
 uint8_t MPU6050_Init(void);
-void MPU6050_Read_Accel(int16_t *accel_x, int16_t * accel_y, int15_t *accel_z);
+void MPU6050_Read_Accel(int16_t *accel_x, int16_t * accel_y, int16_t *accel_z);
 void MPU6050_Read_Gyro(int16_t *gyro_x, int16_t *gyro_y, int16_t *gyro_z);
-int16_t MPU6050_Read_Temp(void);
+//int16_t MPU6050_Read_Temp(void);
