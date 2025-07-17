@@ -1,0 +1,4 @@
+C:/Users/cly/Desktop/STM32_WS/chip_headers/CMSIS/Include/core_cm4.h:1814:22:__NVIC_SetPriority	2
+C:/Users/cly/Desktop/STM32_WS/chip_headers/CMSIS/Include/core_cm4.h:2022:26:SysTick_Config	2
+../Src/main.c:15:6:SysTick_Handler	1
+../Src/main.c:19:5:main	2
