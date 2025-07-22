@@ -3,6 +3,7 @@
 #include "mpu6050.h"
 #include "complementary.h"
 #include "uart.h"
+#include "FreeRTOS.h"
 
 comp imu_CA;
 volatile uint32_t systick_ticks = 0;
