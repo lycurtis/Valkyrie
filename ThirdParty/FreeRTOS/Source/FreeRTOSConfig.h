@@ -90,7 +90,8 @@
 
 #include "system_stm32f4xx.h"
 
-#define configSUPPORT_STATIC_ALLOCATION 1
+#define configSUPPORT_STATIC_ALLOCATION 0 // default: 1
+#define configSUPPORT_DYNAMIC_ALLOCATRION 1 // For now
 
 #define configUSE_PREEMPTION   1
 #define configUSE_IDLE_HOOK    0

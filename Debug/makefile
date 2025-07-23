@@ -9,6 +9,9 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include ThirdParty/FreeRTOS/Source/portable/MemMang/subdir.mk
+-include ThirdParty/FreeRTOS/Source/portable/GCC/ARM_CM4F/subdir.mk
+-include ThirdParty/FreeRTOS/Source/subdir.mk
 -include Startup/subdir.mk
 -include Src/subdir.mk
 -include objects.mk
@@ -60,7 +63,7 @@ main-build: Valkyrie.elf secondary-outputs
 
 # Tool invocations
 Valkyrie.elf Valkyrie.map: $(OBJS) $(USER_OBJS) C:\Users\cly\Desktop\STM32_WS\Valkyrie\STM32F446RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Valkyrie.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\cly\Desktop\STM32_WS\Valkyrie\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Valkyrie.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "Valkyrie.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\cly\Desktop\STM32_WS\Valkyrie\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Valkyrie.map" -Wl,--gc-sections -static -u _printf_float --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
