@@ -7,8 +7,31 @@
 #include "uart.h"
 #include "stm32f4xx.h"
 
-// UART 2
 
+// UART1 PA10
+void UART1_Init(uint32_t baudrate){
+	// 1. Enable clocks
+	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+
+	// 2. Set PA10 to Alternate Function (AF7)
+	GPIOA->MODER &= ~(3 << (10 * 2));
+	GPIOA->MODER |=  (2 << (10 * 2)); // Alternate Function mode
+	GPIOA->AFR[1] &= ~(0xF << 8); // Clear bits for PA10
+	GPIOA->AFR[1] |=  (7 << 8); // AF7 for USART1_RX
+
+	// 3. Configure USART1
+	USART1->BRR = 90000000 / 115200;     // 90 MHz / 115200 = ~781
+	USART1->CR1 |= USART_CR1_RE;  // Enable receiver
+	USART1->CR1 |= USART_CR1_UE; // Enable USART
+}
+
+uint8_t IBUS_ReadByte(void){
+    while (!(USART1->SR & USART_SR_RXNE));
+    return USART1->DR;
+}
+
+// UART 2
 void UART2_Init(uint32_t baudrate) {
 	// Configure UART GPIO pin (TX)
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; // Enable clock access to GPIOA
@@ -29,7 +52,7 @@ void UART2_Init(uint32_t baudrate) {
 
 	// Configure UART module
 	RCC->APB1ENR |= RCC_APB1ENR_USART2EN; // Enable clock access to UART 2
-	USART2->BRR = (16000000U / baudrate);// Configure baudrate USART2->BRR = SYS_FREQ / baudrate;
+	USART2->BRR = (45000000U / baudrate);// Configure baudrate USART2->BRR = SYS_FREQ / baudrate;
 	USART2->CR1 = (USART_CR1_TE | USART_CR1_RE); // Configure the transfer direction (Set TE1 to enable Transmitter) and RE for Receiver
 	// Note: there is no | operator because we want to clean everything in the UART Control Register 1 (CR1)
 	// while also setting CR1 bit 3 to 1 to enable transmitter

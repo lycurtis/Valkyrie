@@ -1,0 +1,5 @@
+../Core/Src/i2c.c:22:6:I2C_Init	1
+../Core/Src/i2c.c:81:6:I2C_Write	6
+../Core/Src/i2c.c:115:6:I2C_Read	6
+../Core/Src/i2c.c:156:6:I2C_Mem_Write	8
+../Core/Src/i2c.c:202:6:I2C_Mem_Read	10

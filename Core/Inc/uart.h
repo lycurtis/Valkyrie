@@ -17,6 +17,11 @@
 #include <stdint.h>
 #include <stdio.h>
 
+// UART 1
+void UART1_Init(uint32_t baudrate);
+uint8_t IBUS_ReadByte(void);
+
+// UART 2
 void UART2_Init(uint32_t baudrate);
 void UART2_WriteChar(char c);
 void UART2_WriteString(const char *str);

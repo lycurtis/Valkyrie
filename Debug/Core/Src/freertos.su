@@ -1,0 +1,4 @@
+../Core/Src/freertos.c:83:6:MX_FREERTOS_Init	16	static
+../Core/Src/freertos.c:127:6:StartDefaultTask	16	static
+../Core/Src/freertos.c:140:6:IMU_Task	72	static
+../Core/Src/freertos.c:166:6:IBUS_Task	48	static
