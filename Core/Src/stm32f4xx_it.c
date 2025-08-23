@@ -22,6 +22,10 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
+#include "globals.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,6 +59,8 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern DMA_HandleTypeDef hdma_usart1_rx;
+extern UART_HandleTypeDef huart1;
 extern TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN EV */
@@ -160,6 +166,40 @@ void DebugMon_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles USART1 global interrupt.
+  */
+void USART1_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART1_IRQn 0 */
+
+  /* USER CODE END USART1_IRQn 0 */
+  /* USER CODE BEGIN USART1_IRQn 1 */
+  // Check if the IDLE line interrupt flag is set
+  if(__HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE) != RESET){
+	  // Clear the IDLE line flag
+	  __HAL_UART_CLEAR_IDLEFLAG(&huart1);
+
+	  // Stop the DMA transfer to process the received data
+	  HAL_UART_DMAStop(&huart1);
+
+	  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+	  // Give the semaphore to unblock the IBUS_Task
+	  xSemaphoreGiveFromISR(ibus_rx_semaphore, &xHigherPriorityTaskWoken);
+
+	  // Restart the DMA transfer for the next packet
+	  HAL_UART_Receive_DMA(&huart1, ibus_dma_buffer, IBUS_PACKET_SIZE);
+
+	  // If giving the semaphore woek a higher priority task, yield to it
+	  portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+  }
+  else{
+	  HAL_UART_IRQHandler(&huart1);
+  }
+  /* USER CODE END USART1_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM6 global interrupt and DAC1, DAC2 underrun error interrupts.
   */
 void TIM6_DAC_IRQHandler(void)
@@ -171,6 +211,20 @@ void TIM6_DAC_IRQHandler(void)
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
 
   /* USER CODE END TIM6_DAC_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream2 global interrupt.
+  */
+void DMA2_Stream2_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream2_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart1_rx);
+  /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream2_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

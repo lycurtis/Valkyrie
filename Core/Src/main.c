@@ -19,7 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
-//#include "usart.h"
+#include "dma.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -101,10 +102,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  //MX_USART2_UART_Init();
+  MX_DMA_Init();
+  MX_USART2_UART_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   I2C_Init();
-  UART2_Init(115200); // UART2 for serial monitor
+  //UART2_Init(115200); // UART2 for serial monitor
   //UART1_Init(115200); // UART1 for iBUS
   MPU6050_Init();
 

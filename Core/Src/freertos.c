@@ -31,6 +31,8 @@
 #include "uart.h"      // My personal with IBUS_ReadByte()
 #include <stdio.h>
 #include "globals.h"
+#include "semphr.h"
+#include "usart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -91,6 +93,8 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
+	ibus_rx_semaphore = xSemaphoreCreateBinary();
+	configASSERT(ibus_rx_semaphore != NULL);
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
@@ -138,16 +142,15 @@ void StartDefaultTask(void *argument)
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 void IMU_Task(void *pvParameters){
-	const float loop_dt = 0.01f; // 10ms loop time --> 100Hz frequency
-	TickType_t lastWakeTime = xTaskGetTickCount();
-	const TickType_t frequency = pdMS_TO_TICKS(10); // 10ms converted to equivalent number of ticks
+	const TickType_t period = pdMS_TO_TICKS(5); // 200 Hz
+	TickType_t last = xTaskGetTickCount();
 
 	while(1){
 		float ax_g, ay_g, az_g;
 		float gx_dps, gy_dps, gz_dps;
 
 		MPU6050_Read_Calibrated(&ax_g, &ay_g, &az_g, &gx_dps, &gy_dps, &gz_dps);
-		ComplementaryFilter_Update(&imu_CA, ax_g, ay_g, az_g, gx_dps, gy_dps, loop_dt);
+		ComplementaryFilter_Update(&imu_CA, ax_g, ay_g, az_g, gx_dps, gy_dps, 0.005f);
 
 		// results
 		roll = imu_CA.roll;
@@ -159,35 +162,33 @@ void IMU_Task(void *pvParameters){
 		//UART2_WriteString(buffer);
 		IMUTaskProfiler++;
 
-		vTaskDelayUntil(&lastWakeTime, frequency);
+		vTaskDelayUntil(&last, period);
 	}
 }
 
 void IBUS_Task(void *pvParameters){
-	uint8_t buffer[18];
+	__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
+	HAL_UART_Receive_DMA(&huart1, ibus_dma_buffer, IBUS_PACKET_SIZE);
 
 	while(1){
-		// Wait for the iBUS packet to start
-		if(IBUS_ReadByte() == 0x20){
-			if(IBUS_ReadByte() == 0x40){
-				// Read remaining 16 bytes
-				for(int i = 0; i < 16; i++){
-					buffer[i] = IBUS_ReadByte();
-				}
-
-				// Decode channels
+		// Wait indefinitely for the semaphore, the task will be in blocked state
+		// ISR is in charge of giving the semaphore
+		if(xSemaphoreTake(ibus_rx_semaphore, portMAX_DELAY) == pdTRUE){
+			if(ibus_dma_buffer[0] == 0x20 && ibus_dma_buffer[1] == 0x20){ //ibus_dma_buffer[1] == 0x40
+				// Decode channels Note: iBUS data is little endian
 				for(int ch = 0; ch < 6; ch++){
-					ibus_channels[ch] = buffer[ch*2] | (buffer[ch*2+1]<<8);
+					ibus_channels[ch] = (uint16_t)(ibus_dma_buffer[2 + ch*2] | (ibus_dma_buffer[3 + ch*2] << 8));
+					//ibus_channels[ch] = (uint16_t)(ibus_dma_buffer[ch*2 + 3] << 8) | ibus_dma_buffer[ch*2 + 2];
 				}
 
-				// Optional:
-				//char str[64];
-				//snprintf(str, sizeof(str), "CH1: %d CH2: %d CH3: %d\r\n", ibus_channels[0], ibus_channels[1], ibus_channels[2]);
-				//UART2_WriteString(str);
+//				char str[64];
+//				snprintf(str, sizeof(str), "CH1:%4d CH2:%4d CH3:%4d CH4:%4d\r\n",
+//						ibus_channels[0], ibus_channels[1],
+//						ibus_channels[2], ibus_channels[3]);
+//				UART2_WriteString(str);
 			}
+			IBUSTaskProfiler++;
 		}
-		IBUSTaskProfiler++;
-		vTaskDelay(pdMS_TO_TICKS(1));
 	}
 }
 /* USER CODE END Application */
